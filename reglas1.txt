@@ -1,0 +1,10 @@
+SI usuario_hace_click_link_sospechoso ENTONCES posible_phishing
+SI posible_phishing Y pagina_pide_credenciales ENTONCES robo_cuenta
+SI robo_cuenta ENTONCES cambiar_contrasenas
+SI sistema_lento Y ventanas_emergentes ENTONCES presencia_malware
+SI presencia_malware ENTONCES ejecutar_antivirus
+SI ejecutar_antivirus Y virus_detectado ENTONCES archivos_cuarentena
+SI archivos_cuarentena ENTONCES notificar_IT
+SI notificar_IT ENTONCES auditar_red
+SI auditar_red ENTONCES revisar_logs
+SI cambiar_contrasenas Y notificar_IT ENTONCES seguridad_restablecida
