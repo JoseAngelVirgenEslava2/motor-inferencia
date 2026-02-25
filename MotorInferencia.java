@@ -174,7 +174,7 @@ public class MotorInferencia {
     }
 
     /*
-     * ENCANDENAMIENTO HACIA ADELANTE (Forward Chaining)
+     * ENCANDENAMIENTO HACIA ADELANTE
      * ------------------------------------------------
      * Parte de los hechos iniciales.
      * Evalúa todas las reglas repetidamente.

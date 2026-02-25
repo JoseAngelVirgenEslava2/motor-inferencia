@@ -1,0 +1,3 @@
+SI fiebre Y dolor_de_garganta ENTONCES gripe
+SI estornudos Y NO fiebre ENTONCES alergia
+SI gripe ENTONCES reposo_obligatorio

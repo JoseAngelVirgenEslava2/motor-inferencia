@@ -1,0 +1,6 @@
+SI salario_alto Y contrato_indefinido ENTONCES perfil_financiero_solido
+SI perfil_financiero_solido Y historial_limpio ENTONCES capacidad_pago_confirmada
+SI capacidad_pago_confirmada Y tiene_ahorros ENTONCES credito_hipotecario_aprobado
+SI capacidad_pago_confirmada Y NO tiene_ahorros ENTONCES requiere_seguro_desempleo
+SI NO historial_limpio ENTONCES credito_rechazado
+SI NO salario_alto Y NO contrato_indefinido ENTONCES perfil_riesgoso

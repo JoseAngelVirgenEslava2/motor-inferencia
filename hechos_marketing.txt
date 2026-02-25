@@ -1,0 +1,3 @@
+usuario_recurrente
+carrito_abandonado
+suscrito_newsletter

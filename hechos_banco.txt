@@ -1,0 +1,4 @@
+salario_alto
+historial_limpio
+contrato_indefinido
+tiene_ahorros

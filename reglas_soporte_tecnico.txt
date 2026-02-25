@@ -1,0 +1,3 @@
+SI luces_rojas_parpadeando ENTONCES falla_hardware
+SI falla_hardware Y cable_conectado ENTONCES reiniciar_router
+SI NO cable_conectado ENTONCES conectar_cable

@@ -1,0 +1,7 @@
+SI usuario_recurrente Y NO realizo_compra ENTONCES cliente_en_duda
+SI cliente_en_duda Y carrito_abandonado ENTONCES enviar_cupon_descuento
+SI enviar_cupon_descuento Y suscrito_newsletter ENTONCES campaña_email_personalizada
+SI campaña_email_personalizada Y NO abrio_correo_previo ENTONCES reintento_notificacion_push
+SI usuario_recurrente Y realizo_compra ENTONCES cliente_fiel
+SI cliente_fiel Y suscrito_newsletter ENTONCES invitar_programa_vip
+SI NO usuario_recurrente ENTONCES campaña_captacion_fria
