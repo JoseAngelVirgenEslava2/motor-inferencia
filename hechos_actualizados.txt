@@ -1,0 +1,15 @@
+usuario_hace_click_link_sospechoso
+pagina_pide_credenciales
+sistema_lento
+ventanas_emergentes
+virus_detectado
+posible_phishing
+robo_cuenta
+cambiar_contrasenas
+presencia_malware
+ejecutar_antivirus
+archivos_cuarentena
+notificar_IT
+auditar_red
+revisar_logs
+seguridad_restablecida

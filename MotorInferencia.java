@@ -123,6 +123,9 @@ public class MotorInferencia {
     // Base de reglas
     static ArrayList<Regla> reglas = new ArrayList<>();
 
+    // Lista de reglas usadas para mostrar el gráfico
+    static ArrayList<Regla> reglasDisparadasGrafico = new ArrayList<>();
+
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
@@ -139,7 +142,7 @@ public class MotorInferencia {
         String meta = sc.nextLine();
 
         if (opcion == 1) {
-            encadenamientoAdelante();
+            encadenamientoAdelante(meta);
         } else {
             System.out.println("Ingrese el objetivo:");
             String objetivo = sc.nextLine();
@@ -163,8 +166,8 @@ public class MotorInferencia {
     // -------------------------
     // ENC. HACIA ADELANTE
     // -------------------------
-    static void encadenamientoAdelante() {
-        boolean cambio;
+    static void encadenamientoAdelante(String meta) {
+        boolean cambio = true;
 
         while (cambio && !hechos.contains(meta)) {
             cambio = false;
@@ -176,7 +179,7 @@ public class MotorInferencia {
                     if (!hechos.contains(r.consecuente)) {
                         System.out.println("Regla disparada -> Se agrega: " + r.consecuente);
                         hechos.add(r.consecuente);
-                        reglasUsadas.add(r);
+                        reglasDisparadasGrafico.add(r);
                         cambio = true;
                     }
                 }
@@ -228,6 +231,7 @@ public class MotorInferencia {
                 if (valido) {
                     System.out.println("Regla disparada -> " + objetivo + " agregado a hechos.");
                     hechos.add(objetivo);
+                    reglasDisparadasGrafico.add(r);
                     return true;
                 }
             }
@@ -344,15 +348,15 @@ public class MotorInferencia {
             Map<String, Object> vMap = new HashMap<>();
 
             for (Regla r : reglasDisparadasGrafico) {
-                // Crear nodo del consecuente (conclusión)
+                // Crear nodo del consecuente 
                 if (!vMap.containsKey(r.consecuente)) {
-                    vMap.put(r.consecuente, graph.insertVertex(parent, null, r.consecuente, 20, 20, 100, 30));
+                    vMap.put(r.consecuente, graph.insertVertex(parent, null, r.consecuente, 20, 20, 200, 30));
                 }
 
                 // Crear nodos de antecedentes y conectarlos
                 for (String ant : r.antecedentes) {
                     if (!vMap.containsKey(ant)) {
-                        vMap.put(ant, graph.insertVertex(parent, null, ant, 20, 20, 100, 30));
+                        vMap.put(ant, graph.insertVertex(parent, null, ant, 20, 20, 200, 30));
                     }
                     // Dibujar la flecha: Antecedente -> Consecuente
                     graph.insertEdge(parent, null, "Dispara", vMap.get(ant), vMap.get(r.consecuente));
@@ -362,6 +366,10 @@ public class MotorInferencia {
             graph.getModel().endUpdate();
         }
 
+        // Acomodo jerárquico automático (para que no salgan encimados)
+        mxHierarchicalLayout layout = new mxHierarchicalLayout(graph);
+        layout.execute(graph.getDefaultParent());
+
         // Configurar la ventana de visualización
         mxGraphComponent graphComponent = new mxGraphComponent(graph);
         JFrame frame = new JFrame("Árbol de Inferencia - Paso a Paso");
@@ -370,6 +378,4 @@ public class MotorInferencia {
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
-
 }
-
