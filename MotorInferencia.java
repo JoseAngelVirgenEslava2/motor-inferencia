@@ -1,5 +1,11 @@
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.view.mxGraph;
+import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 import java.io.*;
 import java.util.*;
+
 
 /*
  * CLASE REGLA
@@ -117,50 +123,27 @@ public class MotorInferencia {
     // Base de reglas
     static ArrayList<Regla> reglas = new ArrayList<>();
 
-    /*
-     * MÉTODO MAIN
-     * Flujo general:
-     * 1) Solicita rutas de archivos
-     * 2) Carga hechos y reglas
-     * 3) Permite elegir tipo de encadenamiento
-     * 4) Ejecuta el motor
-     * 5) Pregunta si se desea guardar la nueva base
-     */
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("\t\t=========Programa de un motor de inferencia========");
-        System.out.println("\t\t=============Realizado por equipo 5================");
+        cargarHechos("hechos1.txt");
+        cargarReglas("reglas1.txt");
 
-        // Cargar base de hechos
-        System.out.println("Ingresar ruta absoluta de la base de hechos: ");
-        String rutaHechos = sc.nextLine();
-        cargarHechos(rutaHechos);
-
-        // Cargar base de reglas
-        System.out.println("Ingresar ruta absoulta de la base de reglas: ");
-        String rutaReglas = sc.nextLine();
-        cargarReglas(rutaReglas);
-
-        // Selección del tipo de inferencia
         System.out.println("1. Encadenamiento hacia Adelante");
         System.out.println("2. Encadenamiento hacia Atrás");
-
         int opcion = sc.nextInt();
         sc.nextLine();
 
+        System.out.println("Ingrese la META a la que quiere llegar:");
+        String meta = sc.nextLine();
+
         if (opcion == 1) {
-
             encadenamientoAdelante();
-
         } else {
-
             System.out.println("Ingrese el objetivo:");
             String objetivo = sc.nextLine();
-
             boolean resultado = encadenamientoAtras(objetivo);
-
             System.out.println("Resultado: " + resultado);
         }
 
@@ -171,61 +154,44 @@ public class MotorInferencia {
         if (guardar.equalsIgnoreCase("s")) {
             guardarHechos("hechos_actualizados.txt");
         }
+
+        if (!reglasDisparadasGrafico.isEmpty()) {
+            mostrarGrafico();
+        }
     }
 
-    /*
-     * ENCANDENAMIENTO HACIA ADELANTE
-     * ------------------------------------------------
-     * Parte de los hechos iniciales.
-     * Evalúa todas las reglas repetidamente.
-     * Cada vez que una regla se activa, agrega su consecuente.
-     * El proceso continúa hasta que no haya más cambios.
-     *
-     */
+    // -------------------------
+    // ENC. HACIA ADELANTE
+    // -------------------------
     static void encadenamientoAdelante() {
-
         boolean cambio;
 
-        do {
+        while (cambio && !hechos.contains(meta)) {
             cambio = false;
-
             for (Regla r : reglas) {
-
                 System.out.println("Evaluando regla:");
                 r.imprimirRegla();
 
                 if (r.sePuedeDisparar(hechos)) {
-
                     if (!hechos.contains(r.consecuente)) {
-
                         System.out.println("Regla disparada -> Se agrega: " + r.consecuente);
-
                         hechos.add(r.consecuente);
+                        reglasUsadas.add(r);
                         cambio = true;
                     }
                 }
             }
 
-        } while (cambio);  // Se repite mientras haya nuevas inferencias
+        } while (cambio);
 
         System.out.println("\nHechos finales:");
-
         for (String h : hechos)
             System.out.println("- " + h);
     }
 
-    /*
-     * ENCANDENAMIENTO HACIA ATRÁS
-     * ------------------------------------------------
-     * Parte de un objetivo.
-     * Intenta demostrarlo buscando reglas cuyo consecuente
-     * coincida con el objetivo.
-     *
-     * Funciona de forma recursiva.
-     * Si logra demostrar todos los antecedentes,
-     * el objetivo se agrega a los hechos.
-     *
-     */
+    // -------------------------
+    // ENC. HACIA ATRÁS
+    // -------------------------
     static boolean encadenamientoAtras(String objetivo) {
 
         // Si ya es un hecho conocido
@@ -234,12 +200,14 @@ public class MotorInferencia {
             return true;
         }
 
+        System.out.println("Nueva Meta: " + objetivo + ". \nBuscando reglas que la sustenten...\n");
+
         // Buscar reglas que produzcan el objetivo
         for (Regla r : reglas) {
 
             if (r.consecuente.equals(objetivo)) {
 
-                System.out.println("Intentando demostrar usando regla:");
+                System.out.println("\n\nIntentando demostrar usando regla:\n");
                 r.imprimirRegla();
 
                 boolean valido = true;
@@ -258,6 +226,7 @@ public class MotorInferencia {
 
                 // Si todos los antecedentes se demostraron
                 if (valido) {
+                    System.out.println("Regla disparada -> " + objetivo + " agregado a hechos.");
                     hechos.add(objetivo);
                     return true;
                 }
@@ -363,5 +332,44 @@ public class MotorInferencia {
         } catch (Exception e) {
             System.out.println("Error al guardar.");
         }
+
     }
+
+    static void mostrarGrafico() {
+        mxGraph graph = new mxGraph();
+        Object parent = graph.getDefaultParent();
+
+        graph.getModel().beginUpdate();
+        try {
+            Map<String, Object> vMap = new HashMap<>();
+
+            for (Regla r : reglasDisparadasGrafico) {
+                // Crear nodo del consecuente (conclusión)
+                if (!vMap.containsKey(r.consecuente)) {
+                    vMap.put(r.consecuente, graph.insertVertex(parent, null, r.consecuente, 20, 20, 100, 30));
+                }
+
+                // Crear nodos de antecedentes y conectarlos
+                for (String ant : r.antecedentes) {
+                    if (!vMap.containsKey(ant)) {
+                        vMap.put(ant, graph.insertVertex(parent, null, ant, 20, 20, 100, 30));
+                    }
+                    // Dibujar la flecha: Antecedente -> Consecuente
+                    graph.insertEdge(parent, null, "Dispara", vMap.get(ant), vMap.get(r.consecuente));
+                }
+            }
+        } finally {
+            graph.getModel().endUpdate();
+        }
+
+        // Configurar la ventana de visualización
+        mxGraphComponent graphComponent = new mxGraphComponent(graph);
+        JFrame frame = new JFrame("Árbol de Inferencia - Paso a Paso");
+        frame.getContentPane().add(graphComponent);
+        frame.setSize(800, 600);
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
 }
+

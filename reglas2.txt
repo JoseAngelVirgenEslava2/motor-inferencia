@@ -8,3 +8,13 @@ SI falta_combustible ENTONCES motor_no_arranca
 SI bujias_sucias ENTONCES combustion_deficiente
 SI combustion_deficiente ENTONCES humo_negro
 SI humo_negro Y llamar_mecanico ENTONCES reparacion_urgente
+SI motor_no_arranca Y llave_gira_en_contacto ENTONCES cliente_llama_mecanico
+SI hay_un_problema_electrico ENTONCES motor_no_arranca
+SI falta_combustible ENTONCES motor_no_arranca
+SI batería_esta_baja Y luces_tenues ENTONCES hay_un_problema_electrico
+SI alternador_roto ENTONCES batería_esta_baja
+SI correa_suelta ENTONCES alternador_roto
+SI tanque_vacio ENTONCES falta_combustible
+SI bujias_sucias ENTONCES combustion_deficiente
+SI combustion_deficiente ENTONCES coche_suelta_humo_negro
+SI coche_suelta_humo_negro Y cliente_llama_mecanico ENTONCES reparacion_urgente
