@@ -1,5 +1,11 @@
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.view.mxGraph;
+import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 import java.io.*;
 import java.util.*;
+
 
 class Regla {
     ArrayList<String> antecedentes;
@@ -41,63 +47,122 @@ public class MotorInferencia {
 
     static ArrayList<String> hechos = new ArrayList<>();
     static ArrayList<Regla> reglas = new ArrayList<>();
-
+    static ArrayList<Regla> reglasDisparadasGrafico = new ArrayList<>();
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        Scanner sc2 = new Scanner(System.in);
+        System.out.println("======ELIGE PROBLEMA======");
+        System.out.println("1. Link sospechoso");
+        System.out.println("2. Mecánico de autos");
 
-        cargarHechos("hechos1.txt");
-        cargarReglas("reglas1.txt");
+        
+        int op = sc2.nextInt();
+        sc2.nextLine();
 
+        switch (op) {
+            case 1 -> {
+                cargarHechos("hechos1.txt");
+                cargarReglas("reglas111.txt");
+            }
+            case 2 -> {
+                cargarHechos("hechos2.txt");
+                cargarReglas("reglas2.txt");
+            }
+            default -> {
+                System.out.println("Opción no válida.");
+                return;
+            }
+        }
+        System.out.println("\nHECHOS INICIALES: " + hechos);
+        System.out.println("\n\n======ELIGE EL TIPO DE ENCADENAMIENTO======");
         System.out.println("1. Encadenamiento hacia Adelante");
         System.out.println("2. Encadenamiento hacia Atrás");
+
+
         int opcion = sc.nextInt();
         sc.nextLine();
 
+        System.out.println("Ingrese la META a la que quiere llegar:");
+        String meta = sc.nextLine();
+
         if (opcion == 1) {
-            encadenamientoAdelante();
+            encadenamientoAdelante(meta);
         } else {
-            System.out.println("Ingrese el objetivo:");
-            String objetivo = sc.nextLine();
-            boolean resultado = encadenamientoAtras(objetivo);
-            System.out.println("Resultado: " + resultado);
+            boolean resultado = encadenamientoAtras(meta);
+            if(resultado) System.out.println("\n¡META [" + meta + "] CONFIRMADA!");
+            else System.out.println("\nNo se pudo confirmar la meta.");
         }
+
+        
+
+        System.out.println("\nLista de hechos actualizada: " + hechos);
 
         System.out.println("¿Desea guardar los hechos? (s/n)");
         String guardar = sc.nextLine();
         if (guardar.equalsIgnoreCase("s")) {
             guardarHechos("hechos_actualizados.txt");
         }
+
+        if (!reglasDisparadasGrafico.isEmpty()) {
+            mostrarGrafico();
+        }
     }
 
     // -------------------------
     // ENC. HACIA ADELANTE
     // -------------------------
-    static void encadenamientoAdelante() {
-        boolean cambio;
+    static void encadenamientoAdelante(String meta) {
+        System.out.println("\n--- INICIANDO PROCESO PASO A PASO ---");
+        boolean cambio = true;
+        HashSet<Regla> reglasUsadas = new HashSet<>();
 
-        do {
+        while (cambio && !hechos.contains(meta)) {
             cambio = false;
-
             for (Regla r : reglas) {
-                System.out.println("Evaluando regla:");
-                r.imprimirRegla();
+                if (reglasUsadas.contains(r)) continue;
 
-                if (r.sePuedeDisparar(hechos)) {
-                    if (!hechos.contains(r.consecuente)) {
-                        System.out.println("Regla disparada -> Se agrega: " + r.consecuente);
+                // Paso 1: Ver si la regla es relevante (comparte algo con nuestros hechos)
+                boolean relevante = false;
+                for(String ant : r.antecedentes) {
+                    if(hechos.contains(ant)) {
+                        relevante = true;
+                        break;
+                    }
+                }
+
+                if (relevante) {
+                    System.out.println("-------------------------------------------------");
+                    System.out.print("Regla a evaluar: \n");
+                    r.imprimirRegla();
+
+                    // Paso 2: Intentar disparar
+                    if (r.sePuedeDisparar(hechos)) {
+                        System.out.println("¡Regla disparada exitosamente!\n");
+                        System.out.println("Se agrega '" + r.consecuente + "' a la lista de hechos.\n");
+                        reglasDisparadasGrafico.add(r);
+
                         hechos.add(r.consecuente);
+                        reglasUsadas.add(r);
                         cambio = true;
+
+                        if (r.consecuente.equalsIgnoreCase(meta)) {
+                            System.out.println("\n>>> RESULTADO: Meta '" + meta + "' alcanzada.");
+                            return;
+                        }
+                        System.out.println("NUEVA META: " + r.consecuente);
+                    } else {
+                        System.out.println("Regla no disparada. Faltan hechos o  no coinciden.");
                     }
                 }
             }
-
-        } while (cambio);
-
-        System.out.println("\nHechos finales:");
-        for (String h : hechos)
-            System.out.println("- " + h);
+        }
+        
+        if (hechos.contains(meta)) {
+            System.out.println("\n*** META [" + meta + "] CONFIRMADA ***");
+        } else {
+            System.out.println("\n[AVISO]: Se agotaron las reglas y no se pudo alcanzar la meta '" + meta + "'.");
+        }
     }
-
     // -------------------------
     // ENC. HACIA ATRÁS
     // -------------------------
@@ -108,11 +173,13 @@ public class MotorInferencia {
             return true;
         }
 
+        System.out.println("Nueva Meta: " + objetivo + ". \nBuscando reglas que la sustenten...\n");
+
         for (Regla r : reglas) {
 
             if (r.consecuente.equals(objetivo)) {
 
-                System.out.println("Intentando demostrar usando regla:");
+                System.out.println("\n\nIntentando demostrar usando regla:\n");
                 r.imprimirRegla();
 
                 boolean valido = true;
@@ -129,6 +196,7 @@ public class MotorInferencia {
                 }
 
                 if (valido) {
+                    System.out.println("Regla disparada -> " + objetivo + " agregado a hechos.");
                     hechos.add(objetivo);
                     return true;
                 }
@@ -200,5 +268,44 @@ public class MotorInferencia {
         } catch (Exception e) {
             System.out.println("Error al guardar.");
         }
+
     }
+
+    static void mostrarGrafico() {
+        mxGraph graph = new mxGraph();
+        Object parent = graph.getDefaultParent();
+
+        graph.getModel().beginUpdate();
+        try {
+            Map<String, Object> vMap = new HashMap<>();
+
+            for (Regla r : reglasDisparadasGrafico) {
+                // Crear nodo del consecuente (conclusión)
+                if (!vMap.containsKey(r.consecuente)) {
+                    vMap.put(r.consecuente, graph.insertVertex(parent, null, r.consecuente, 20, 20, 100, 30));
+                }
+
+                // Crear nodos de antecedentes y conectarlos
+                for (String ant : r.antecedentes) {
+                    if (!vMap.containsKey(ant)) {
+                        vMap.put(ant, graph.insertVertex(parent, null, ant, 20, 20, 100, 30));
+                    }
+                    // Dibujar la flecha: Antecedente -> Consecuente
+                    graph.insertEdge(parent, null, "Dispara", vMap.get(ant), vMap.get(r.consecuente));
+                }
+            }
+        } finally {
+            graph.getModel().endUpdate();
+        }
+
+        // Configurar la ventana de visualización
+        mxGraphComponent graphComponent = new mxGraphComponent(graph);
+        JFrame frame = new JFrame("Árbol de Inferencia - Paso a Paso");
+        frame.getContentPane().add(graphComponent);
+        frame.setSize(800, 600);
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
 }
+

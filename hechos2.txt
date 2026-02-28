@@ -1,0 +1,6 @@
+llave_gira_en_contacto
+luces_tenues
+correa_suelta
+tanque_vacio
+bujias_sucias
+
